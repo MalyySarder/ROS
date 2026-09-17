@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR01",
+  "commit": "a0cbe42e9e8a2292e383bab5ccb9e87544c3c1e6",
+  "course_kit": {
+    "version": "v1-w02",
+    "archive_sha256": "5d210c431e32418f45e2cffa9dd2028116c7a9520a36f3c7079c778cd73437a8"
+  },
+  "commands": [
+    "printenv ROS_DISTRO",
+    "ros2 topic list",
+    "ros2 topic type /turtle1/pose",
+    "timeout 5s ros2 topic echo /turtle1/pose \"$POSE_TYPE\" --once",
+    "ROS_DOMAIN_ID=17 timeout 5s ros2 topic echo /turtle1/pose \"$POSE_TYPE\" --once",
+    "ROS_DOMAIN_ID=16 timeout 5s ros2 topic echo /turtle1/pose \"$POSE_TYPE\" --once"
+  ],
+  "tests": [
+    {
+      "name": "ROS 2 Jazzy environment",
+      "status": "passed"
+    },
+    {
+      "name": "ROS 2 graph and turtlesim topics",
+      "status": "passed"
+    },
+    {
+      "name": "/turtle1/pose communication after restoring domain",
+      "status": "passed"
+    }
+  ],
+  "defect": {
+    "reproducer": "При несовпадении ROS_DOMAIN_ID у участников ROS 2 связи команда чтения /turtle1/pose завершается по таймауту.",
+    "root_cause": "Участники ROS 2 с разными ROS_DOMAIN_ID находятся в разных DDS-доменах и не обнаруживают друг друга.",
+    "proof_after": "После возврата ROS_DOMAIN_ID=16 команда чтения /turtle1/pose завершилась с exit=0 и получила сообщение turtlesim/msg/Pose."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 0,
+    "self_study_hours": 0
+  },
+  "ai_used": true
+}
