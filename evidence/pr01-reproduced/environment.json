@@ -1,0 +1,12 @@
+{
+  "method": "native",
+  "os": "Ubuntu 26.04.1 LTS",
+  "ROS_DISTRO": "lyrical",
+  "gazebo": "10.5.0",
+  "RMW_IMPLEMENTATION": "rmw_fastrtps_cpp",
+  "domains": [
+    16,
+    17
+  ],
+  "note": "User approved Lyrical instead of original Jazzy/WSL2; original evidence/pr01 preserved."
+}
