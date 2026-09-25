@@ -1,0 +1,38 @@
+{
+  "before": {
+    "x": 5.544444561004639,
+    "y": 5.544444561004639,
+    "theta": 0.0,
+    "linear_velocity": 0.0,
+    "angular_velocity": 0.0
+  },
+  "once": {
+    "x": 6.509308815002441,
+    "y": 5.796990871429443,
+    "theta": 0.5040000081062317,
+    "linear_velocity": 0.0,
+    "angular_velocity": 0.0
+  },
+  "broken": {
+    "x": 6.509308815002441,
+    "y": 5.796990871429443,
+    "theta": 0.5040000081062317,
+    "linear_velocity": 0.0,
+    "angular_velocity": 0.0
+  },
+  "fixed": {
+    "x": 7.423816680908203,
+    "y": 8.206134796142578,
+    "theta": 1.9040000438690186,
+    "linear_velocity": 1.0,
+    "angular_velocity": 0.5
+  },
+  "stopped": {
+    "x": 6.720535755157471,
+    "y": 9.15625,
+    "theta": 2.503999948501587,
+    "linear_velocity": 0.0,
+    "angular_velocity": 0.0
+  },
+  "assertions": "passed"
+}

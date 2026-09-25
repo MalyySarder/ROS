@@ -1,0 +1,1 @@
+/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/install/turtle_bringup

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR02",
+  "commit": "1133c239a942433472a4f9718b56db73ac108661",
+  "course_kit": {
+    "version": "v1-w03",
+    "archive_sha256": "7fbfd3e8161ab6c6ebefc7663efdaf77d9a7d490399743507f33dcefbd5ac522"
+  },
+  "commands": [
+    "source /opt/ros/lyrical/setup.bash",
+    "colcon build --symlink-install --packages-select turtle_bringup",
+    "source install/setup.bash",
+    "ros2 pkg prefix turtle_bringup",
+    "ros2 launch turtle_bringup sim.launch.py",
+    "ros2 node list --no-daemon --spin-time 2",
+    "ros2 topic pub --once /turtle1/cmd_vel geometry_msgs/msg/Twist \"{linear: {x: 1.0}, angular: {z: 0.5}}\"",
+    "ros2 topic pub --rate 1 --wait-matching-subscriptions 0 /cmd_vel geometry_msgs/msg/Twist \"{linear: {x: 1.0}, angular: {z: 0.5}}\"",
+    "ros2 topic pub --rate 1 --wait-matching-subscriptions 0 /turtle1/cmd_vel geometry_msgs/msg/Twist \"{linear: {x: 1.0}, angular: {z: 0.5}}\"",
+    "ros2 topic info /cmd_vel --verbose",
+    "ros2 topic info /turtle1/cmd_vel --verbose",
+    "ros2 topic echo /turtle1/pose --once",
+    "colcon test --packages-select turtle_bringup",
+    "colcon test-result --verbose"
+  ],
+  "tests": [
+    {
+      "name": "Empty package build",
+      "status": "passed"
+    },
+    {
+      "name": "Final build and installed launch discovery",
+      "status": "passed"
+    },
+    {
+      "name": "Launch starts exactly one turtlesim; SIGINT stops child",
+      "status": "passed"
+    },
+    {
+      "name": "One Twist changes pose",
+      "status": "passed"
+    },
+    {
+      "name": "Wrong topic: 1 publisher, 0 subscribers, unchanged pose",
+      "status": "passed"
+    },
+    {
+      "name": "Only topic-name fix: 1 publisher, 1 subscriber, changed pose",
+      "status": "passed"
+    },
+    {
+      "name": "Turtle stops after publisher exits",
+      "status": "passed"
+    },
+    {
+      "name": "Generated package checks: 4 passed",
+      "status": "passed"
+    },
+    {
+      "name": "Generated copyright test is skipped by package template",
+      "status": "skipped"
+    }
+  ],
+  "defect": {
+    "reproducer": "Publish Twist at 1 Hz to /cmd_vel: publisher exists, zero subscribers; pose stays x=6.509309 y=5.796991 theta=0.504.",
+    "root_cause": "/cmd_vel and /turtle1/cmd_vel are different fully qualified topic names. Matching Twist type and domain do not connect these endpoints.",
+    "proof_after": "Changed only topic name to /turtle1/cmd_vel. One publisher and one turtlesim subscription; pose changed to x=7.423817 y=8.206135 theta=1.904. See raw topic info and pose logs."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}
