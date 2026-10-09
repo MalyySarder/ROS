@@ -1,0 +1,10 @@
+[INFO] [launch]: All log files can be found below /home/malyysarder/.ros/log/2026-10-09-13-04-16-099667-malyysarder-Nitro-AN515-57-13221
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [turtlesim_node-1]: process started with pid [13237]
+[turtlesim_node-1] [INFO] [1791525856.761370688] [turtlesim]: Starting turtlesim with node name /turtlesim
+[turtlesim_node-1] [INFO] [1791525856.781988048] [turtlesim]: Spawning turtle [turtle1] at x=[5.544445], y=[5.544445], theta=[0.000000]
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [turtlesim_node-1]: sending signal 'SIGINT' to process[turtlesim_node-1]
+[turtlesim_node-1] [INFO] [1791525908.898493799] [rclcpp]: signal_handler(signum=2)
+[turtlesim_node-1] [INFO] [1791525908.901979804] [rclcpp]: signal_handler(signum=2)
+[INFO] [turtlesim_node-1]: process has finished cleanly [pid 13237]

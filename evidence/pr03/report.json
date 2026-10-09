@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR03",
+  "commit": "91c4694988e35516c74a359278592393d0f1ae6c",
+  "course_kit": {
+    "version": "v1-w05",
+    "archive_sha256": "bca214e3de6f90f9513049dfa0f36fee65ad834da502dc3f3f8fb443517b5197"
+  },
+  "commands": [
+    "colcon build --symlink-install --packages-select patrol",
+    "source install/setup.bash",
+    "python3 -m pytest src/patrol/test -v",
+    "colcon test --packages-select patrol --event-handlers console_direct+",
+    "colcon test-result --test-result-base build/patrol --verbose",
+    "ros2 run patrol patrol",
+    "ros2 topic echo /cmd_vel geometry_msgs/msg/Twist --once",
+    "ros2 launch turtle_bringup sim.launch.py",
+    "ros2 topic type /turtle1/pose",
+    "ros2 node list --no-daemon --spin-time 2",
+    "ros2 node info /patrol",
+    "ros2 topic echo /turtle1/pose --once",
+    "ros2 topic info /cmd_vel --verbose",
+    "ros2 topic info /turtle1/cmd_vel --verbose",
+    "ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel",
+    "ros2 topic echo /turtle1/cmd_vel --once",
+    "timeout --signal=INT 13s ros2 topic hz /turtle1/cmd_vel"
+  ],
+  "tests": [
+    {
+      "name": "Minimal node build and /patrol discovery",
+      "status": "passed"
+    },
+    {
+      "name": "Final patrol build",
+      "status": "passed"
+    },
+    {
+      "name": "pytest: 9 passed, including 4 pure-function behavior tests",
+      "status": "passed"
+    },
+    {
+      "name": "colcon test: 9 tests, 0 errors, 0 failures, 0 skipped",
+      "status": "passed"
+    },
+    {
+      "name": "Live zero Twist before first pose",
+      "status": "passed"
+    },
+    {
+      "name": "Live pose subscription and nonzero Twist on wrong /cmd_vel",
+      "status": "passed"
+    },
+    {
+      "name": "Wrong topic: no turtlesim subscriber and unchanged pose",
+      "status": "passed"
+    },
+    {
+      "name": "Remap only: one publisher, one subscriber, identical command, moving turtle",
+      "status": "passed"
+    },
+    {
+      "name": "Measured cmd_vel frequency over 13 seconds: last average 10.000 Hz",
+      "status": "passed"
+    },
+    {
+      "name": "SIGINT stops patrol; turtlesim stops after waiting; two stationary poses",
+      "status": "passed"
+    }
+  ],
+  "defect": {
+    "reproducer": "Run ros2 run patrol patrol with turtlesim in domain 16: /cmd_vel has one publisher and zero subscribers; /turtle1/cmd_vel has zero publishers and one subscriber. Pose is received but turtle remains at x=5.544445 y=5.544445 theta=0.",
+    "root_cause": "Relative cmd_vel resolves to /cmd_vel in the root namespace. Turtlesim listens on /turtle1/cmd_vel. Matching Twist type and ROS domain do not connect different topic names.",
+    "proof_after": "Restart only patrol with --ros-args -r cmd_vel:=/turtle1/cmd_vel. The target has one publisher and one subscriber; the same 0.5/0.3 Twist reaches turtlesim, pose changes, measured rate is 10.000 Hz. SIGINT plus waiting leaves zero velocity and stable pose."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}

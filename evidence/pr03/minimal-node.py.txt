@@ -1,0 +1,21 @@
+"""Minimal ROS node before adding subscription and timer."""
+
+import rclpy
+from rclpy.node import Node
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = Node('patrol')
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
