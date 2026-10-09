@@ -1,27 +1,42 @@
-name: ROS PR02 checks
+name: ROS PR03 checks
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
-  pr02:
+  pr03:
     runs-on: ubuntu-latest
     container:
       image: osrf/ros:jazzy-desktop-full@sha256:d16957210572c5f919f3f9bd2fb0cc24a82542647489d8b8eda7c3beda31305f
     env:
-      COURSE_KIT_URL: https://ros.lms.ci.nsu.ru/downloads/robotics-course-kit-v1-w03-7fbfd3e8161a.tar.gz
-      COURSE_KIT_SHA256: 7fbfd3e8161ab6c6ebefc7663efdaf77d9a7d490399743507f33dcefbd5ac522
+      COURSE_KIT_URL: https://ros.lms.ci.nsu.ru/downloads/robotics-course-kit-v1-w05-bca214e3de6f.tar.gz
+      COURSE_KIT_SHA256: bca214e3de6f90f9513049dfa0f36fee65ad834da502dc3f3f8fb443517b5197
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Install package test dependencies
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends python3-pytest \
+            ros-jazzy-ament-copyright ros-jazzy-ament-flake8 \
+            ros-jazzy-ament-mypy ros-jazzy-ament-pep257 ros-jazzy-ament-xmllint
       - name: Build and verify installed launch
         shell: bash
         run: |
           source /opt/ros/jazzy/setup.bash
-          colcon build --symlink-install --packages-select turtle_bringup
+          colcon build --symlink-install --packages-select turtle_bringup patrol
           source install/setup.bash
           test -f "$(ros2 pkg prefix turtle_bringup)/share/turtle_bringup/launch/sim.launch.py"
           python3 -m py_compile src/turtle_bringup/launch/sim.launch.py
+      - name: Test patrol
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          source install/setup.bash
+          python3 -c "from patrol.patrol import Patrol"
+          colcon test --packages-select patrol --event-handlers console_direct+
+          colcon test-result --verbose
       - name: Download pinned course kit
         shell: bash
         run: |
@@ -33,4 +48,4 @@ jobs:
         shell: bash
         run: |
           python3 -m json.tool evidence/pr01/environment.json > /dev/null
-          python3 .course-kit/v1/tools/check_practice.py PR02 --submission .
+          python3 .course-kit/v1/tools/check_practice.py PR03 --submission .

@@ -2,7 +2,7 @@
 
 Исходная ПР01 выполнена в ROS 2 Jazzy / WSL2; её evidence сохранено без изменений.
 Повторение на этом ПК: Ubuntu 26.04.1, ROS 2 Lyrical, native, домены 16/17.
-Результаты повторения: `evidence/pr01-reproduced/`. ПР02: `evidence/pr02/`.
+Результаты повторения: `evidence/pr01-reproduced/`. ПР02: `evidence/pr02/`. ПР03: `evidence/pr03/`.
 
 ## Подготовка каждого терминала
 
@@ -82,22 +82,89 @@ ros2 topic pub --rate 1 --wait-matching-subscriptions 0 \
 
 ## Проверка и сдача
 
-Course kit v1-w03 закреплён URL и SHA-256 в `.github/workflows/ci.yml`.
+Для текущей ПР03 course kit v1-w05 закреплён URL и SHA-256 в `.github/workflows/ci.yml`.
 Скачайте и распакуйте его по шагу Download pinned course kit, затем:
 
 ```bash
 python3 -m py_compile src/turtle_bringup/launch/sim.launch.py
-python3 .course-kit/v1/tools/check_practice.py PR02 --submission .
+python3 .course-kit/v1/tools/check_practice.py PR03 --submission .
 ```
 
-GitHub Actions собирает пакет в закреплённом официальном Jazzy-образе из
+GitHub Actions собирает оба пакета и выполняет тесты patrol в закреплённом официальном Jazzy-образе из
 инструкции курса; локальные опыты выполнены на Lyrical. Это две отдельные
 среды: внутри каждой используется только один дистрибутив. GUI проверен локально.
 Старый отчёт ПР01 относится к старой версии kit и старому коммиту;
-перепроверять его checker-ом ПР02 на новом HEAD некорректно.
+перепроверять старые отчёты ПР01/ПР02 на новом HEAD некорректно.
+Для старых сдач используйте их коммиты и версии kit из соответствующих отчётов.
 
 Для сдачи нужны SHA evidence-коммита и успешный Actions run именно этого SHA.
 `report.json:commit` указывает предыдущий коммит реализации.
 
 Условия: https://ros.lms.ci.nsu.ru/practices/pr01 и
 https://ros.lms.ci.nsu.ru/practices/pr02.
+
+
+## ПР03: собственная нода patrol
+
+В свежем терминале подключите базовую ROS и соберите пакеты:
+
+```bash
+source /opt/ros/lyrical/setup.bash
+colcon build --symlink-install --packages-select turtle_bringup patrol
+source install/setup.bash
+export ROS_DOMAIN_ID=16
+python3 -m pytest src/patrol/test -v
+```
+
+В каждом новом терминале подключайте базовую ROS, `install/setup.bash`
+и домен 16. В A запустите `ros2 launch turtle_bringup sim.launch.py`.
+Убедитесь, что teleop и старые издатели скорости остановлены.
+
+В B сначала запустите ноду без remap:
+
+```bash
+ros2 run patrol patrol
+```
+
+В C проверьте граф и команду:
+
+```bash
+ros2 node info /patrol
+ros2 topic echo /cmd_vel --once
+ros2 topic info /cmd_vel --verbose
+ros2 topic info /turtle1/cmd_vel --verbose
+ros2 topic echo /turtle1/pose --once
+```
+
+Нода принимает позу, но команда уходит в `/cmd_vel`, где нет подписчика.
+Остановите B (Ctrl+C), затем исправьте связь без изменения исходников:
+
+```bash
+ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel
+```
+
+В C повторите проверку и измерьте частоту:
+
+```bash
+ros2 node info /patrol
+ros2 topic info /turtle1/cmd_vel --verbose
+ros2 topic echo /turtle1/cmd_vel --once
+timeout --signal=INT 13s ros2 topic hz /turtle1/cmd_vel
+ros2 topic echo /turtle1/pose --once
+```
+
+Ожидается около 10 Гц; код 124 у timeout означает завершение заданного интервала.
+После Ctrl+C в B подождите остановки черепахи: исчезновение ноды не отправляет
+нулевую команду. Проверьте нулевые скорости в `/turtle1/pose`.
+
+Нода хранит последнюю позу в callback. Таймер 0.1 с публикует результат чистой
+функции: до первой позы — нули, после — linear.x=0.5, angular.z=0.3.
+В этой работе нет таймаута устаревшей позы: после первого сообщения сохраняется
+последняя поза, как требует базовое задание.
+
+Для проверки нулей до первой позы остановите симулятор и перезапустите patrol;
+в C прочитайте `/cmd_vel` с явным типом `geometry_msgs/msg/Twist`.
+Пакет выбирает Pose из turtlesim в Jazzy и turtlesim_msgs в Lyrical;
+условные зависимости объявлены в package.xml.
+
+Условие ПР03: https://ros.lms.ci.nsu.ru/practices/pr03.
