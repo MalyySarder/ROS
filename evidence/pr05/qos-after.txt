@@ -1,0 +1,387 @@
+ПР05: compatible BEST_EFFORT subscriber, recording exactly one sensor stream.
+
+$ ros2 launch course_bringup patrol.launch.py namespace:=robot_a subscriber_reliability:=best_effort record:=true bag_dir:=evidence/pr05/bag [background]
+
+$ ros2 topic info /robot_a/sensor_pose --verbose
+
+Type: turtlesim_msgs/msg/Pose
+
+Publisher count: 1
+
+Node name: pose_relay
+Node namespace: /robot_a
+Topic type: turtlesim_msgs/msg/Pose
+Topic type hash: RIHS01_37b07ace09a0ed2c5b774b1410dec972dfd1d292de5656ebc2b075ac646e09c8
+Endpoint type: PUBLISHER
+GID: 01.0f.72.14.15.d5.96.a7.00.00.00.00.00.00.13.03
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 2
+
+Node name: pose_monitor
+Node namespace: /robot_a
+Topic type: turtlesim_msgs/msg/Pose
+Topic type hash: RIHS01_37b07ace09a0ed2c5b774b1410dec972dfd1d292de5656ebc2b075ac646e09c8
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.72.14.16.d5.02.57.00.00.00.00.00.00.13.04
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Node name: rosbag2_recorder
+Node namespace: /
+Topic type: turtlesim_msgs/msg/Pose
+Topic type hash: RIHS01_37b07ace09a0ed2c5b774b1410dec972dfd1d292de5656ebc2b075ac646e09c8
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.72.14.17.d5.60.c1.00.00.00.00.00.00.26.04
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+
+
+exit=0
+
+$ timeout 3s ros2 topic echo /robot_a/sensor_pose turtlesim_msgs/msg/Pose --qos-reliability best_effort --once
+
+x: 6.7734761238098145
+y: 6.089762210845947
+theta: 0.8303999900817871
+linear_velocity: 0.5
+angular_velocity: 0.30000001192092896
+---
+
+
+exit=0
+
+background exit=0
+
+$ ros2 bag info evidence/pr05/bag
+
+
+Files:             0_bag_2026_10_16-13_25_53.mcap
+Bag size:          47.5 KiB
+Storage id:        mcap
+ROS Distro:        lyrical
+Duration:          9.855444410s
+Start:             Oct 16 2026 13:25:53.237146824 (1792131953.237146824)
+End:               Oct 16 2026 13:26:03.092591234 (1792131963.092591234)
+Messages:          617
+Topic information: Topic: /robot_a/sensor_pose | Type: turtlesim_msgs/msg/Pose | Count: 617 | Serialization Format: cdr
+Services:          0
+Service information: 
+Actions:           0
+Action information: 
+
+
+exit=0
+
+$ ros2 bag play evidence/pr05/bag --loop --qos-profile-overrides-path config/qos-overrides.yaml [background]
+
+Replay of the SAME bag: best_effort receives messages.
+
+$ timeout 3s ros2 topic echo /robot_a/sensor_pose turtlesim_msgs/msg/Pose --qos-reliability best_effort --once
+
+x: 6.7815093994140625
+y: 8.323555946350098
+theta: 2.2992000579833984
+linear_velocity: 0.5
+angular_velocity: 0.30000001192092896
+---
+
+
+exit=0
+
+$ ros2 run patrol pose_monitor --ros-args -r __ns:=/robot_a -p subscriber_reliability:=best_effort [background]
+
+background exit=0
+
+background exit=0
+
+Assertions passed: record=false creates no recorder/bag; live reliable times out, best_effort delivers; same one-topic MCAP replay reproduces reliable failure and best_effort delivery. Monitor counts confirm actual callback delivery.
+
+Background log:
+[INFO] [launch]: All log files can be found below /home/malyysarder/.ros/log/2026-10-16-13-25-51-476605-malyysarder-Nitro-AN515-57-54531
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [turtlesim_node-1]: process started with pid [54547]
+[INFO] [patrol-2]: process started with pid [54548]
+[INFO] [pose_relay-3]: process started with pid [54549]
+[INFO] [pose_monitor-4]: process started with pid [54550]
+[INFO] [ros2-5]: process started with pid [54551]
+[turtlesim_node-1] [INFO] [1792131952.019538682] [turtlesim]: Starting turtlesim with node name /turtlesim
+[turtlesim_node-1] [INFO] [1792131952.031427143] [turtlesim]: Spawning turtle [turtle1] at x=[5.544445], y=[5.544445], theta=[0.000000]
+[ros2-5] stdin is not a terminal device. Keyboard handling disabled.[INFO] [1792131953.119938870] [rosbag2_recorder]: Press SPACE for pausing/resuming
+[ros2-5] [INFO] [1792131953.119976027] [rosbag2_recorder]: Event publisher thread: Started
+[ros2-5] [INFO] [1792131953.136671396] [rosbag2_recorder]: Starting recording to 'evidence/pr05/bag'
+[ros2-5] [WARN] [1792131953.136760428] [rosbag2_recorder]: No input serialization format specified, using default rmw serialization format: 'cdr'.
+[ros2-5] [INFO] [1792131953.144553283] [rosbag2_recorder]: Listening for topics...
+[ros2-5] [INFO] [1792131953.144630739] [rosbag2_recorder]: Recording...
+[ros2-5] [INFO] [1792131953.144689163] [rosbag2_recorder]: Topics discovery started.
+[ros2-5] [INFO] [1792131953.236444432] [rosbag2_recorder]: Subscribed to topic '/robot_a/sensor_pose'
+[ros2-5] [INFO] [1792131953.236512551] [rosbag2_recorder]: All requested topics are subscribed. Stopping discovery...
+[ros2-5] [INFO] [1792131953.236639510] [rosbag2_recorder]: Topics discovery stopped.
+[pose_monitor-4] [INFO] [1792131953.771089303] [robot_a.pose_monitor]: received=63
+[pose_monitor-4] [INFO] [1792131954.753429047] [robot_a.pose_monitor]: received=125
+[pose_monitor-4] [INFO] [1792131955.753152102] [robot_a.pose_monitor]: received=188
+[pose_monitor-4] [INFO] [1792131956.753282063] [robot_a.pose_monitor]: received=250
+[pose_monitor-4] [INFO] [1792131957.753119462] [robot_a.pose_monitor]: received=313
+[pose_monitor-4] [INFO] [1792131958.753192440] [robot_a.pose_monitor]: received=375
+[pose_monitor-4] [INFO] [1792131959.753603361] [robot_a.pose_monitor]: received=438
+[pose_monitor-4] [INFO] [1792131960.753196152] [robot_a.pose_monitor]: received=500
+[pose_monitor-4] [INFO] [1792131961.753640493] [robot_a.pose_monitor]: received=563
+[pose_monitor-4] [INFO] [1792131962.753314810] [robot_a.pose_monitor]: received=625
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [ros2-5]: sending signal 'SIGINT' to process[ros2-5]
+[INFO] [pose_monitor-4]: sending signal 'SIGINT' to process[pose_monitor-4]
+[INFO] [pose_relay-3]: sending signal 'SIGINT' to process[pose_relay-3]
+[INFO] [patrol-2]: sending signal 'SIGINT' to process[patrol-2]
+[INFO] [turtlesim_node-1]: sending signal 'SIGINT' to process[turtlesim_node-1]
+[turtlesim_node-1] [INFO] [1792131963.108405762] [rclcpp]: signal_handler(signum=2)
+[ros2-5] [INFO] [1792131963.108500927] [rosbag2_cpp]: Writing remaining messages from cache to the bag. It may take a while
+[ros2-5] [INFO] [1792131963.112408751] [rosbag2_recorder]: Recording stopped
+[ros2-5] [INFO] [1792131963.113811406] [rosbag2_recorder]: Event publisher thread: Exited
+[turtlesim_node-1] [INFO] [1792131963.132169919] [rclcpp]: signal_handler(signum=2)
+[ros2-5] Exception ignored on threading shutdown:
+[ros2-5] Traceback (most recent call last):
+[ros2-5]   File "/usr/lib/python3.14/threading.py", line 1559, in _shutdown
+[ros2-5]     def _shutdown():
+[ros2-5] KeyboardInterrupt: 
+[ERROR] [pose_monitor-4]: process has died [pid 54550, exit code -2, cmd '/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/install/patrol/lib/patrol/pose_monitor --ros-args -r __ns:=/robot_a --params-file /tmp/launch_params_lmtemnm_'].
+[ERROR] [patrol-2]: process has died [pid 54548, exit code -2, cmd '/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/install/patrol/lib/patrol/patrol --ros-args -r __ns:=/robot_a -r turtle1/pose:=/turtle1/pose -r cmd_vel:=/turtle1/cmd_vel'].
+[ERROR] [pose_relay-3]: process has died [pid 54549, exit code -2, cmd '/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/install/patrol/lib/patrol/pose_relay --ros-args -r __ns:=/robot_a -r pose:=/turtle1/pose'].
+[INFO] [turtlesim_node-1]: process has finished cleanly [pid 54547]
+[INFO] [ros2-5]: process has finished cleanly [pid 54551]
+
+
+Background log:
+stdin is not a terminal device. Keyboard handling disabled.[INFO] [1792131965.722027972] [rosbag2_player]: Set rate to 1
+[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131953.237146854] Duration 0.00/9.86 [R]
+[4A[INFO] [1792131965.722497061] [rosbag2_player]: Overriding QoS profile for topic /robot_a/sensor_pose
+[INFO] [1792131965.739394906] [rosbag2_player]: Adding keyboard callbacks.
+[INFO] [1792131965.739472776] [rosbag2_player]: Press SPACE for Pause/Resume
+[INFO] [1792131965.739487654] [rosbag2_player]: Press CURSOR_RIGHT for Play Next Message
+[INFO] [1792131965.739500873] [rosbag2_player]: Press CURSOR_UP for Increase Rate 10%
+[INFO] [1792131965.739512269] [rosbag2_player]: Press CURSOR_DOWN for Decrease Rate 10%
+Progress bar enabled at 3 Hz.
+Progress bar [?]: [R]unning, [P]aused, [B]urst, [D]elayed, [S]topped
+[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131953.237146854] Duration 0.00/9.86 [S]
+[4A[INFO] [1792131965.740990063] [rosbag2_player]: Playback until timestamp: -1
+[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131953.237146854] Duration 0.00/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131953.237146854] Duration 0.00/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131953.572626114] Duration 0.34/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131953.909064531] Duration 0.67/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131954.244607449] Duration 1.01/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131954.581478834] Duration 1.34/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131954.916353226] Duration 1.68/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131955.252968073] Duration 2.02/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131955.588814735] Duration 2.35/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131955.924993277] Duration 2.69/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131956.261333942] Duration 3.02/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131956.597114563] Duration 3.36/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131956.933185816] Duration 3.70/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131957.268995285] Duration 4.03/9.86 [R]
+[4A[WARN] [1792131970.139551959] [rosbag2_player]: New subscription discovered on topic '/robot_a/sensor_pose', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY_QOS_POLICY
+[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131957.604690075] Duration 4.37/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131957.940607786] Duration 4.70/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131958.277091503] Duration 5.04/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131958.613273859] Duration 5.38/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131958.949096680] Duration 5.71/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131959.284630299] Duration 6.05/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131959.621070385] Duration 6.38/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131959.956629753] Duration 6.72/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131960.292746782] Duration 7.06/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131960.629050016] Duration 7.39/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131960.964933634] Duration 7.73/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131961.301334858] Duration 8.06/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131961.637432814] Duration 8.40/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131961.973475695] Duration 8.74/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131962.309162378] Duration 9.07/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131962.644796133] Duration 9.41/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131962.980974436] Duration 9.74/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131962.980974436] Duration 9.74/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131953.364890099] Duration 0.13/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131953.701045036] Duration 0.46/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131954.036759138] Duration 0.80/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131954.372854233] Duration 1.14/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131954.708643675] Duration 1.47/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131955.045065641] Duration 1.81/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131955.381620169] Duration 2.14/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131955.716533661] Duration 2.48/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131956.053637981] Duration 2.82/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131956.389000177] Duration 3.15/9.86 [R]
+[4A[INFO] [1792131979.062247906] [rosbag2_player]: Stopping playback.
+[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131956.389000177] Duration 3.15/9.86 [S]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131956.389000177] Duration 3.15/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131956.389000177] Duration 3.15/9.86 [R]
+[4A[2K
+[2K
+[2K====== Playback Progress ======
+[2K[1792131956.389000177] Duration 3.15/9.86 [R]
+[4A[4B
+
+Background log:
+[INFO] [1792131976.350567057] [robot_a.pose_monitor]: received=55
+[INFO] [1792131977.334328872] [robot_a.pose_monitor]: received=117
+[INFO] [1792131978.334290736] [robot_a.pose_monitor]: received=180
+[ros2run]: Received signal:  Interrupt
+
+.............................                                            [100%]
+29 passed in 17.52s

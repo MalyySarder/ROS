@@ -1,0 +1,152 @@
+ПР05: live BEST_EFFORT publisher vs RELIABLE subscriber; expected timeout.
+
+$ ros2 launch course_bringup patrol.launch.py namespace:=robot_a subscriber_reliability:=reliable record:=false [background]
+
+$ ros2 node list --no-daemon --spin-time 2
+
+/robot_a/patrol
+/robot_a/pose_monitor
+/robot_a/pose_relay
+/turtlesim
+
+
+exit=0
+
+$ ros2 topic list -t
+
+/parameter_events [rcl_interfaces/msg/ParameterEvent]
+/robot_a/sensor_pose [turtlesim_msgs/msg/Pose]
+/rosout [rcl_interfaces/msg/Log]
+/turtle1/cmd_vel [geometry_msgs/msg/Twist]
+/turtle1/color_sensor [turtlesim_msgs/msg/Color]
+/turtle1/pose [turtlesim_msgs/msg/Pose]
+
+
+exit=0
+
+$ ros2 topic info /robot_a/sensor_pose --verbose
+
+Type: turtlesim_msgs/msg/Pose
+
+Publisher count: 1
+
+Node name: pose_relay
+Node namespace: /robot_a
+Topic type: turtlesim_msgs/msg/Pose
+Topic type hash: RIHS01_37b07ace09a0ed2c5b774b1410dec972dfd1d292de5656ebc2b075ac646e09c8
+Endpoint type: PUBLISHER
+GID: 01.0f.72.14.cd.d3.d6.89.00.00.00.00.00.00.13.03
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 1
+
+Node name: pose_monitor
+Node namespace: /robot_a
+Topic type: turtlesim_msgs/msg/Pose
+Topic type hash: RIHS01_37b07ace09a0ed2c5b774b1410dec972dfd1d292de5656ebc2b075ac646e09c8
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.72.14.ce.d3.ce.5d.00.00.00.00.00.00.13.04
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+
+
+exit=0
+
+$ timeout 3s ros2 topic echo /robot_a/sensor_pose turtlesim_msgs/msg/Pose --qos-reliability reliable --once
+
+[WARN] [1792131948.584647201] [_ros2cli_54492]: New publisher discovered on topic '/robot_a/sensor_pose', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY
+
+
+exit=124
+
+background exit=0
+
+Replay of the SAME recorded MCAP, explicit best_effort override; reliable still cannot receive.
+
+$ ros2 topic info /robot_a/sensor_pose --verbose
+
+Type: turtlesim_msgs/msg/Pose
+
+Publisher count: 1
+
+Node name: rosbag2_player
+Node namespace: /
+Topic type: turtlesim_msgs/msg/Pose
+Topic type hash: RIHS01_37b07ace09a0ed2c5b774b1410dec972dfd1d292de5656ebc2b075ac646e09c8
+Endpoint type: PUBLISHER
+GID: 01.0f.72.14.f2.d5.00.35.00.00.00.00.00.00.13.03
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 0
+
+
+
+exit=0
+
+$ timeout 3s ros2 topic echo /robot_a/sensor_pose turtlesim_msgs/msg/Pose --qos-reliability reliable --once
+
+[WARN] [1792131970.161464722] [_ros2cli_54849]: New publisher discovered on topic '/robot_a/sensor_pose', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY
+!rclpy.ok()
+
+
+exit=124
+
+Background log:
+[INFO] [launch]: All log files can be found below /home/malyysarder/.ros/log/2026-10-16-13-25-37-904390-malyysarder-Nitro-AN515-57-54205
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [turtlesim_node-1]: process started with pid [54219]
+[INFO] [patrol-2]: process started with pid [54220]
+[INFO] [pose_relay-3]: process started with pid [54221]
+[INFO] [pose_monitor-4]: process started with pid [54222]
+[turtlesim_node-1] [INFO] [1792131938.393833369] [turtlesim]: Starting turtlesim with node name /turtlesim
+[turtlesim_node-1] [INFO] [1792131938.421375086] [turtlesim]: Spawning turtle [turtle1] at x=[5.544445], y=[5.544445], theta=[0.000000]
+[pose_monitor-4] [WARN] [1792131939.174864536] [robot_a.pose_monitor]: New publisher discovered on topic 'sensor_pose', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY
+[pose_relay-3] [WARN] [1792131939.179146996] [robot_a.pose_relay]: New subscription discovered on topic 'sensor_pose', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[pose_monitor-4] [INFO] [1792131940.156895780] [robot_a.pose_monitor]: received=0
+[pose_monitor-4] [INFO] [1792131941.156362438] [robot_a.pose_monitor]: received=0
+[pose_monitor-4] [INFO] [1792131942.156343769] [robot_a.pose_monitor]: received=0
+[pose_monitor-4] [INFO] [1792131943.156231338] [robot_a.pose_monitor]: received=0
+[pose_monitor-4] [INFO] [1792131944.156316871] [robot_a.pose_monitor]: received=0
+[pose_monitor-4] [INFO] [1792131945.156507406] [robot_a.pose_monitor]: received=0
+[pose_monitor-4] [INFO] [1792131946.156214256] [robot_a.pose_monitor]: received=0
+[pose_monitor-4] [INFO] [1792131947.156216478] [robot_a.pose_monitor]: received=0
+[pose_monitor-4] [INFO] [1792131948.156448502] [robot_a.pose_monitor]: received=0
+[pose_relay-3] [WARN] [1792131948.563469216] [robot_a.pose_relay]: New subscription discovered on topic 'sensor_pose', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[pose_monitor-4] [INFO] [1792131949.156805372] [robot_a.pose_monitor]: received=0
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [pose_monitor-4]: sending signal 'SIGINT' to process[pose_monitor-4]
+[INFO] [pose_relay-3]: sending signal 'SIGINT' to process[pose_relay-3]
+[INFO] [patrol-2]: sending signal 'SIGINT' to process[patrol-2]
+[INFO] [turtlesim_node-1]: sending signal 'SIGINT' to process[turtlesim_node-1]
+[turtlesim_node-1] [INFO] [1792131950.007943021] [rclcpp]: signal_handler(signum=2)
+[pose_relay-3] Exception ignored on threading shutdown:
+[pose_relay-3] Traceback (most recent call last):
+[pose_relay-3]   File "/usr/lib/python3.14/threading.py", line 1559, in _shutdown
+[ERROR] [pose_monitor-4]: process has died [pid 54222, exit code -2, cmd '/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/install/patrol/lib/patrol/pose_monitor --ros-args -r __ns:=/robot_a --params-file /tmp/launch_params_iysxgqp8'].
+[ERROR] [patrol-2]: process has died [pid 54220, exit code -2, cmd '/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/install/patrol/lib/patrol/patrol --ros-args -r __ns:=/robot_a -r turtle1/pose:=/turtle1/pose -r cmd_vel:=/turtle1/cmd_vel'].
+[ERROR] [turtlesim_node-1]: process has died [pid 54219, exit code -2, cmd '/opt/ros/lyrical/lib/turtlesim/turtlesim_node --ros-args'].
+[pose_relay-3]     def _shutdown():
+[pose_relay-3] KeyboardInterrupt: 
+[INFO] [pose_relay-3]: process has finished cleanly [pid 54221]
+

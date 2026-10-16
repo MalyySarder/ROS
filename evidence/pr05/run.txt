@@ -1,0 +1,47 @@
+ПР05 — Launch, namespace, QoS и MCAP. Краткий отчёт и демонстрация
+
+Используем: launch/launch_ros, rclpy, QoS, rosbag2, формат MCAP.
+course_bringup запускает один глобальный turtlesim и /robot_a/{patrol,pose_relay,pose_monitor}.
+Имена в нодах относительные; remap связывает вход позы и выход скорости с turtlesim.
+pose_relay предлагает BEST_EFFORT; подписчик RELIABLE несовместим и получает 0 сообщений.
+BEST_EFFORT-подписчик получает поток. Тот же эффект проверяется на одной записи MCAP.
+record включается через IfCondition; record=false не создаёт recorder.
+
+Во всех терминалах:
+cd ~/Documents/ChatGPT/ДЗ/ROS
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+export ROS_DOMAIN_ID=16
+Останови предыдущие launch/teleop/patrol; должен быть один turtlesim.
+
+A — ошибка:
+ros2 launch course_bringup patrol.launch.py namespace:=robot_a subscriber_reliability:=reliable record:=false
+B:
+ros2 node list
+ros2 topic info /robot_a/sensor_pose --verbose
+timeout 3s ros2 topic echo /robot_a/sensor_pose turtlesim_msgs/msg/Pose --qos-reliability reliable --once
+echo $?
+Ожидается 124, в A received=0. Топик обнаружен, но доставка несовместима по reliability.
+
+Ctrl+C в A. Исправление и НОВАЯ запись (путь должен ещё не существовать):
+ros2 launch course_bringup patrol.launch.py namespace:=robot_a subscriber_reliability:=best_effort record:=true bag_dir:=/tmp/pr05-demo-bag
+B:
+timeout 3s ros2 topic echo /robot_a/sensor_pose turtlesim_msgs/msg/Pose --qos-reliability best_effort --once
+Ожидается сообщение. Подожди 10 секунд, затем Ctrl+C в A: recorder сохранит metadata.
+
+Повтор сохранённой записи (живой launch должен быть остановлен):
+A:
+ros2 bag play /tmp/pr05-demo-bag --loop --qos-profile-overrides-path config/qos-overrides.yaml
+B — НА ЭТОЙ ЖЕ ЗАПИСИ:
+timeout 3s ros2 topic echo /robot_a/sensor_pose turtlesim_msgs/msg/Pose --qos-reliability reliable --once
+echo $?
+timeout 3s ros2 topic echo /robot_a/sensor_pose turtlesim_msgs/msg/Pose --qos-reliability best_effort --once
+echo $?
+Ожидается 124 и 0 соответственно.
+ros2 bag info /tmp/pr05-demo-bag
+Один записанный топик /robot_a/sensor_pose, storage mcap. Ctrl+C в A.
+
+Уже проверенная запись лежит локально в evidence/pr05/bag; её можно сразу проиграть.
+В Git: qos-before.txt, qos-after.txt, bag-metadata.yaml, report.json и эта инструкция.
+Bag не заменяет исходники: он содержит сообщения и время, но не версии кода.
+В Jazzy тип Pose называется turtlesim/msg/Pose; локально используем Lyrical.
