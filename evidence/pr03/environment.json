@@ -1,8 +1,0 @@
-{
-  "os": "Linux-7.0.0-34-generic-x86_64-with-glibc2.43",
-  "ros_distro": "lyrical",
-  "pose_type": "turtlesim_msgs/msg/Pose",
-  "domain_id": 16,
-  "mode": "native",
-  "ci_ros_distro": "jazzy"
-}
