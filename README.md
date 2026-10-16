@@ -190,3 +190,12 @@ ros2 topic echo /turtle1/pose --once
 CI push проверяет master, а не учебные ветки с намеренными ошибками.
 
 ПР05: `ros2 launch course_bringup patrol.launch.py namespace:=robot_a subscriber_reliability:=best_effort record:=true bag_dir:=evidence/pr05/bag`. Демонстрация и краткий отчёт: `evidence/pr05/run.txt`. MCAP остаётся локально.
+
+ПР06: `ros2 launch course_description display.launch.py show_wheels:=true`.
+Модель из Xacro, robot_state_publisher, RViz с Fixed Frame=base_link; JointState
+для показа колёс отправляет CLI, отдельный joint_state_publisher не нужен.
+Демонстрация и краткий отчёт: `evidence/pr06/run.txt`.
+
+Сдачи ПР04 и ПР05 доступны на коммитах `ed0a59d04b9301e3f006d123253476a1215023c4`
+и `2e1eb37117b7ba8111a267f9d911d2b9e5d15cb2` соответственно; текущий CI проверяет ПР06.
+Для новой записи ПР05 выбирайте ещё не существующий bag_dir.
