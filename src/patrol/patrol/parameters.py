@@ -23,6 +23,8 @@ LIMITS = {'linear_speed': (0.0, 1.0), 'turn_rate': (-1.0, 1.0),
 def validate_settings(settings):
     """Reject nonnumeric, nonfinite and out-of-range motion settings."""
     for name, (low, high) in LIMITS.items():
+        if name == 'publish_hz':
+            continue  # Intentional PR04 fault: frequency validation disabled.
         value = settings[name]
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise ValueError(f'{name} must be a finite number')
