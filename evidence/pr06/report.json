@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR06",
+  "commit": "2996920f4c82cdc051148726b8fafc3128789c49",
+  "course_kit": {
+    "version": "v1-w06",
+    "archive_sha256": "6eda53e1c566f7f0a7e09d7afe1e5a6f3b98397175a7e57dede9a84c6d14d0fe"
+  },
+  "commands": [
+    "xacro src/course_description/urdf/vehicle.urdf.xacro > /tmp/vehicle.urdf",
+    "check_urdf /tmp/vehicle.urdf",
+    "python3 -m pytest src/course_description/test -v",
+    "colcon test --packages-select patrol course_description --event-handlers console_direct+",
+    "ros2 launch course_description display.launch.py show_wheels:=true",
+    "ros2 topic info /tf_static --verbose",
+    "timeout 4s ros2 topic echo /tf_static --once --qos-durability transient_local --qos-reliability reliable",
+    "timeout 4s ros2 topic echo /tf_static --once --qos-durability volatile --qos-reliability reliable",
+    "ros2 run tf2_ros tf2_echo base_link lidar_link",
+    "ros2 run tf2_tools view_frames --output /tmp/pr06-frames"
+  ],
+  "tests": [
+    {
+      "name": "Minimal body/lidar tf verified before full model",
+      "status": "passed"
+    },
+    {
+      "name": "check_urdf accepts expanded Xacro",
+      "status": "passed"
+    },
+    {
+      "name": "6 model tests: topology, sensor parents, parameter changes and physical numbers",
+      "status": "passed"
+    },
+    {
+      "name": "RViz visually verified: Global Status Ok, robot visible",
+      "status": "passed"
+    },
+    {
+      "name": "One tf_static publisher; late transient_local receives, volatile times out",
+      "status": "passed"
+    },
+    {
+      "name": "Wrong parent branch passes syntax but fails parent test; tf becomes 0.56 0 0.76",
+      "status": "passed"
+    },
+    {
+      "name": "Corrected same parent test passes; tf restored to 0.28 0 0.38",
+      "status": "passed"
+    },
+    {
+      "name": "Current patrol and description colcon tests pass",
+      "status": "passed"
+    }
+  ],
+  "defect": {
+    "reproducer": "In codex/pr06-lidar-parent-fault change only lidar_joint parent from base_link to camera_link, preserving offset.",
+    "root_cause": "The camera offset is added to the unchanged lidar offset; the tree is syntactically valid but sensor placement violates the contract.",
+    "proof_after": "Parent test fails and tf2_echo shows [0.560,0,0.760] in fault branch; same test passes and tf2_echo shows [0.280,0,0.380] on corrected master."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}

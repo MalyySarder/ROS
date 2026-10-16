@@ -1,0 +1,310 @@
+robot name is: course_ackermann
+---------- Successfully Parsed XML ---------------
+root Link: base_link has 7 child(ren)
+    child(1):  camera_link
+    child(2):  front_left_knuckle
+        child(1):  front_left_wheel
+    child(3):  front_right_knuckle
+        child(1):  front_right_wheel
+    child(4):  imu_link
+    child(5):  lidar_link
+    child(6):  rear_left_wheel
+    child(7):  rear_right_wheel
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/malyysarder/Documents/ChatGPT/ДЗ/ROS
+plugins: ament_xmllint-0.20.6, ament_mypy-0.20.6, ament_lint-0.20.6, launch_testing_ros-0.29.9, ament_copyright-0.20.6, ament_pep257-0.20.6, launch_testing-3.9.8, ament_flake8-0.20.6, typeguard-4.4.4, cov-5.0.0, colcon-core-0.21.3
+collecting ... collected 6 items
+
+src/course_description/test/test_model.py::test_tree_connected_acyclic PASSED [ 16%]
+src/course_description/test/test_model.py::test_lidar_parent PASSED      [ 33%]
+src/course_description/test/test_model.py::test_sensor_contract PASSED   [ 50%]
+src/course_description/test/test_model.py::test_parameterized_geometry[0.8-0.62-0.12] PASSED [ 66%]
+src/course_description/test/test_model.py::test_parameterized_geometry[1.0-0.8-0.15] PASSED [ 83%]
+src/course_description/test/test_model.py::test_shapes_and_physical_numbers PASSED [100%]
+
+============================== 6 passed in 0.22s ===============================
+
+
+=== Initial minimal base + fixed lidar ===
+robot name is: course_ackermann
+---------- Successfully Parsed XML ---------------
+root Link: base_link has 1 child(ren)
+    child(1):  lidar_link
+
+=== Intentional wrong parent, failing test, and same test after fix ===
+Intentional fault commit 78eb6be86a89743a3343b61de4af4e393a1732be
+
+$ check_urdf /tmp/pr06-broken.urdf
+
+robot name is: course_ackermann
+---------- Successfully Parsed XML ---------------
+root Link: base_link has 6 child(ren)
+    child(1):  camera_link
+        child(1):  lidar_link
+    child(2):  front_left_knuckle
+        child(1):  front_left_wheel
+    child(3):  front_right_knuckle
+        child(1):  front_right_wheel
+    child(4):  imu_link
+    child(5):  rear_left_wheel
+    child(6):  rear_right_wheel
+
+
+exit=0
+
+$ env PR06_MODEL=/tmp/ros-pr06-fault/src/course_description/urdf/vehicle.urdf.xacro python3 -m pytest src/course_description/test/test_model.py -k test_lidar_parent -v
+
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/malyysarder/Documents/ChatGPT/ДЗ/ROS
+plugins: ament_xmllint-0.20.6, ament_mypy-0.20.6, ament_lint-0.20.6, launch_testing_ros-0.29.9, ament_copyright-0.20.6, ament_pep257-0.20.6, launch_testing-3.9.8, ament_flake8-0.20.6, typeguard-4.4.4, cov-5.0.0, colcon-core-0.21.3
+collecting ... collected 6 items / 5 deselected / 1 selected
+
+src/course_description/test/test_model.py::test_lidar_parent FAILED      [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_lidar_parent _______________________________
+
+    def test_lidar_parent():
+        j = joint(model(), 'lidar_joint')
+>       assert j.find('parent').get('link') == 'base_link'
+E       AssertionError: assert 'camera_link' == 'base_link'
+E         
+E         - base_link
+E         + camera_link
+
+src/course_description/test/test_model.py:49: AssertionError
+=========================== short test summary info ============================
+FAILED src/course_description/test/test_model.py::test_lidar_parent - Asserti...
+======================= 1 failed, 5 deselected in 0.04s ========================
+
+
+exit=1
+
+$ ros2 run robot_state_publisher robot_state_publisher --ros-args --params-file /tmp/pr06-broken.yaml [background]
+
+$ timeout --signal=INT 5s ros2 run tf2_ros tf2_echo base_link lidar_link
+
+[INFO] [1792132523.322097334] [tf2_echo]: Waiting for transform base_link ->  lidar_link: Invalid frame ID "base_link" passed to canTransform argument target_frame - frame does not exist
+At time 0.0
+- Translation: [0.560, 0.000, 0.760]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+- Rotation: in RPY (radian) [0.000, -0.000, 0.000]
+- Rotation: in RPY (degree) [0.000, -0.000, 0.000]
+- Matrix:
+  1.000  0.000  0.000  0.560
+  0.000  1.000  0.000  0.000
+  0.000  0.000  1.000  0.760
+  0.000  0.000  0.000  1.000
+At time 0.0
+- Translation: [0.560, 0.000, 0.760]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+- Rotation: in RPY (radian) [0.000, -0.000, 0.000]
+- Rotation: in RPY (degree) [0.000, -0.000, 0.000]
+- Matrix:
+  1.000  0.000  0.000  0.560
+  0.000  1.000  0.000  0.000
+  0.000  0.000  1.000  0.760
+  0.000  0.000  0.000  1.000
+At time 0.0
+- Translation: [0.560, 0.000, 0.760]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+- Rotation: in RPY (radian) [0.000, -0.000, 0.000]
+- Rotation: in RPY (degree) [0.000, -0.000, 0.000]
+- Matrix:
+  1.000  0.000  0.000  0.560
+  0.000  1.000  0.000  0.000
+  0.000  0.000  1.000  0.760
+  0.000  0.000  0.000  1.000
+At time 0.0
+- Translation: [0.560, 0.000, 0.760]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+- Rotation: in RPY (radian) [0.000, -0.000, 0.000]
+- Rotation: in RPY (degree) [0.000, -0.000, 0.000]
+- Matrix:
+  1.000  0.000  0.000  0.560
+  0.000  1.000  0.000  0.000
+  0.000  0.000  1.000  0.760
+  0.000  0.000  0.000  1.000
+[INFO] [1792132528.048581591] [rclcpp]: signal_handler(signum=2)
+[ros2run]: Received signal:  Interrupt
+[INFO] [1792132528.049350973] [rclcpp]: signal_handler(signum=2)
+
+
+exit=124
+
+background exit=0
+
+Back to the unchanged correct master version; same test and same tf2 lookup.
+
+$ python3 -m pytest src/course_description/test/test_model.py -k test_lidar_parent -v
+
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/malyysarder/Documents/ChatGPT/ДЗ/ROS
+plugins: ament_xmllint-0.20.6, ament_mypy-0.20.6, ament_lint-0.20.6, launch_testing_ros-0.29.9, ament_copyright-0.20.6, ament_pep257-0.20.6, launch_testing-3.9.8, ament_flake8-0.20.6, typeguard-4.4.4, cov-5.0.0, colcon-core-0.21.3
+collecting ... collected 6 items / 5 deselected / 1 selected
+
+src/course_description/test/test_model.py::test_lidar_parent PASSED      [100%]
+
+======================= 1 passed, 5 deselected in 0.03s ========================
+
+
+exit=0
+
+$ ros2 launch course_description display.launch.py rviz:=false [background]
+
+$ timeout --signal=INT 5s ros2 run tf2_ros tf2_echo base_link lidar_link
+
+[INFO] [1792132531.037301103] [tf2_echo]: Waiting for transform base_link ->  lidar_link: Invalid frame ID "base_link" passed to canTransform argument target_frame - frame does not exist
+At time 0.0
+- Translation: [0.280, 0.000, 0.380]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+- Rotation: in RPY (radian) [0.000, -0.000, 0.000]
+- Rotation: in RPY (degree) [0.000, -0.000, 0.000]
+- Matrix:
+  1.000  0.000  0.000  0.280
+  0.000  1.000  0.000  0.000
+  0.000  0.000  1.000  0.380
+  0.000  0.000  0.000  1.000
+At time 0.0
+- Translation: [0.280, 0.000, 0.380]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+- Rotation: in RPY (radian) [0.000, -0.000, 0.000]
+- Rotation: in RPY (degree) [0.000, -0.000, 0.000]
+- Matrix:
+  1.000  0.000  0.000  0.280
+  0.000  1.000  0.000  0.000
+  0.000  0.000  1.000  0.380
+  0.000  0.000  0.000  1.000
+At time 0.0
+- Translation: [0.280, 0.000, 0.380]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+- Rotation: in RPY (radian) [0.000, -0.000, 0.000]
+- Rotation: in RPY (degree) [0.000, -0.000, 0.000]
+- Matrix:
+  1.000  0.000  0.000  0.280
+  0.000  1.000  0.000  0.000
+  0.000  0.000  1.000  0.380
+  0.000  0.000  0.000  1.000
+At time 0.0
+- Translation: [0.280, 0.000, 0.380]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+- Rotation: in RPY (radian) [0.000, -0.000, 0.000]
+- Rotation: in RPY (degree) [0.000, -0.000, 0.000]
+- Matrix:
+  1.000  0.000  0.000  0.280
+  0.000  1.000  0.000  0.000
+  0.000  0.000  1.000  0.380
+  0.000  0.000  0.000  1.000
+[ros2run]: Received signal:  Interrupt
+[INFO] [1792132535.770387813] [rclcpp]: signal_handler(signum=2)
+
+
+exit=124
+
+background exit=0
+
+Background log:
+[WARN] [1792132521.331812652] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[INFO] [1792132521.331904033] [robot_state_publisher]: Robot initialized
+[ros2run]: Received signal:  Interrupt
+[INFO] [1792132528.190607997] [rclcpp]: signal_handler(signum=2)
+
+
+Background log:
+[INFO] [launch]: All log files can be found below /home/malyysarder/.ros/log/2026-10-16-13-35-29-098972-malyysarder-Nitro-AN515-57-59002
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [robot_state_publisher-1]: process started with pid [59018]
+[robot_state_publisher-1] [WARN] [1792132529.255009287] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-1] [INFO] [1792132529.255083689] [robot_state_publisher]: Robot initialized
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [robot_state_publisher-1]: sending signal 'SIGINT' to process[robot_state_publisher-1]
+[robot_state_publisher-1] [INFO] [1792132535.912904385] [rclcpp]: signal_handler(signum=2)
+[robot_state_publisher-1] [INFO] [1792132535.914136995] [rclcpp]: signal_handler(signum=2)
+[INFO] [robot_state_publisher-1]: process has finished cleanly [pid 59018]
+
+
+=== colcon tests: current patrol and description ===
+Starting >>> course_description
+Starting >>> patrol
+SetCTestConfiguration:BuildDirectory:/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description
+UpdateCTestConfiguration  from :/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/CTestConfiguration.ini
+Parse Config file:/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/CTestConfiguration.ini
+SetCMakeVariable:CTEST_SITE:malyysarder-Nitro-AN515-57
+SetCMakeVariable:CTEST_SOURCE_DIRECTORY:/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/src/course_description
+SetCMakeVariable:CTEST_BINARY_DIRECTORY:/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description
+SetCMakeVariable:CTEST_CONFIGURE_COMMAND:"/usr/bin/cmake" "/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/src/course_description"
+SetCMakeVariable:CTEST_TEST_TIMEOUT:10000000
+UpdateCTestConfiguration  from :/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/CTestConfiguration.ini
+Parse Config file:/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/CTestConfiguration.ini
+SetCMakeVariable:CTEST_SITE:malyysarder-Nitro-AN515-57
+SetCMakeVariable:CTEST_SOURCE_DIRECTORY:/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/src/course_description
+SetCMakeVariable:CTEST_BINARY_DIRECTORY:/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description
+SetCMakeVariable:CTEST_CONFIGURE_COMMAND:"/usr/bin/cmake" "/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/src/course_description"
+SetCTestConfiguration:BuildDirectory:/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description
+SetCTestConfiguration:SourceDirectory:/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/src/course_description
+Test project /home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: model
+
+1: Test command: /usr/bin/python3 "-u" "/opt/ros/lyrical/share/ament_cmake_test/cmake/run_test.py" "/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/test_results/course_description/model.xunit.xml" "--package-name" "course_description" "--output-file" "/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/ament_cmake_pytest/model.txt" "--env" "PYTHONDONTWRITEBYTECODE=1" "--command" "/usr/bin/python3" "-u" "-m" "pytest" "/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/src/course_description/test/test_model.py" "-o" "cache_dir=/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/ament_cmake_pytest/model/.cache" "--junit-xml=/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/test_results/course_description/model.xunit.xml" "--junit-prefix=course_description"
+1: Working Directory: /home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description
+1: Test timeout computed to be: 60
+1: -- run_test.py: extra environment variables:
+1:  - PYTHONDONTWRITEBYTECODE=1
+1: -- run_test.py: invoking following command in '/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description':
+1:  - /usr/bin/python3 -u -m pytest /home/malyysarder/Documents/ChatGPT/ДЗ/ROS/src/course_description/test/test_model.py -o cache_dir=/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/ament_cmake_pytest/model/.cache --junit-xml=/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/test_results/course_description/model.xunit.xml --junit-prefix=course_description
+1: ============================= test session starts ==============================
+1: platform linux -- Python 3.14.4, pytest-9.0.2, pluggy-1.6.0
+1: cachedir: build/course_description/ament_cmake_pytest/model/.cache
+1: rootdir: /home/malyysarder/Documents/ChatGPT/ДЗ/ROS
+1: plugins: ament_xmllint-0.20.6, ament_mypy-0.20.6, ament_lint-0.20.6, launch_testing_ros-0.29.9, ament_copyright-0.20.6, ament_pep257-0.20.6, launch_testing-3.9.8, ament_flake8-0.20.6, typeguard-4.4.4, cov-5.0.0, colcon-core-0.21.3
+1: collected 6 items
+1: 
+1: ../../src/course_description/test/test_model.py ......                   [100%]
+1: 
+1: - generated xml file: /home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/test_results/course_description/model.xunit.xml -
+1: ============================== 6 passed in 0.20s ===============================
+1: -- run_test.py: return code 0
+1: -- run_test.py: verify result file '/home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/course_description/test_results/course_description/model.xunit.xml'
+1/1 Test #1: model ............................   Passed    1.65 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+pytest    =   1.65 sec*proc (1 test)
+
+Total Test time (real) =   1.65 sec
+Finished <<< course_description [2.31s]
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.0.2, pluggy-1.6.0
+cachedir: /home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/patrol/.pytest_cache
+rootdir: /home/malyysarder/Documents/ChatGPT/ДЗ/ROS/src/patrol
+plugins: ament_xmllint-0.20.6, ament_mypy-0.20.6, ament_lint-0.20.6, launch_testing_ros-0.29.9, ament_copyright-0.20.6, ament_pep257-0.20.6, launch_testing-3.9.8, ament_flake8-0.20.6, typeguard-4.4.4, cov-5.0.0, colcon-core-0.21.3
+collected 29 items
+
+test/test_control.py ....                                                [ 13%]
+test/test_copyright.py .                                                 [ 17%]
+test/test_flake8.py .                                                    [ 20%]
+test/test_mypy.py .                                                      [ 24%]
+test/test_parameters.py ..................                               [ 86%]
+test/test_pep257.py .                                                    [ 89%]
+test/test_qos.py ..                                                      [ 96%]
+test/test_xmllint.py .                                                   [100%]
+
+- generated xml file: /home/malyysarder/Documents/ChatGPT/ДЗ/ROS/build/patrol/pytest.xml -
+============================= 29 passed in 19.81s ==============================
+Finished <<< patrol [29.5s]
+
+Summary: 2 packages finished [30.0s]

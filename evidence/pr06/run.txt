@@ -1,0 +1,74 @@
+ПР06 — Модель Ackermann, tf2 и /tf_static. Краткий отчёт и демонстрация
+
+Используем: URDF/Xacro, robot_state_publisher, tf2, RViz, QoS durability.
+Проверки: 6 тестов модели прошли; check_urdf принимает исправную модель.
+Дефект parent подтверждён падением теста и смещением tf; после исправления тест проходит.
+Размеры взяты из SDF course kit v1-w06: база 0.8 м, колея 0.62 м, радиус колеса 0.12 м.
+Корпус 1.05×0.52×0.22 м. Xacro позволяет менять базу, колею и радиус.
+Есть base_link, четыре колеса, два рулевых кулака и camera/lidar/imu frames.
+Оси: X вперёд, Y влево, Z вверх. Visual и collision заданы отдельно.
+
+В каждом терминале:
+cd ~/Documents/ChatGPT/ДЗ/ROS
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+export ROS_DOMAIN_ID=16
+
+A — модель и RViz:
+ros2 launch course_description display.launch.py show_wheels:=true
+Fixed Frame должен быть base_link, Global Status — Ok.
+show_wheels запускает ros2 topic pub для шести JointState с нулевыми положениями.
+Отдельный joint_state_publisher не нужен. Без show_wheels фиксированные сенсоры
+видны сразу, подвижные колёса ждут joint_states.
+
+B — структура и тесты:
+xacro src/course_description/urdf/vehicle.urdf.xacro > /tmp/vehicle.urdf
+check_urdf /tmp/vehicle.urdf
+python3 -m pytest src/course_description/test -v
+ros2 run tf2_ros tf2_echo base_link lidar_link
+Ожидается translation [0.280, 0.000, 0.380], rotation identity. Ctrl+C.
+ros2 run tf2_tools view_frames --output /tmp/pr06-demo-frames
+Файл /tmp/pr06-demo-frames.pdf содержит дерево.
+
+B — подключись ПОСЛЕ запуска A:
+ros2 topic info /tf_static --verbose
+timeout 4 ros2 topic echo /tf_static --once --qos-durability transient_local --qos-reliability reliable
+echo $?
+Ожидается сообщение и 0.
+timeout 4 ros2 topic echo /tf_static --once --qos-durability volatile --qos-reliability reliable
+echo $?
+Ожидается отсутствие сообщения и 124.
+Статические преобразования опубликованы один раз; transient_local отдаёт
+сохранённое сообщение позднему подписчику, volatile — только новые сообщения.
+/tf содержит меняющиеся преобразования и использует volatile.
+
+Параметризация: Ctrl+C в A, затем:
+ros2 launch course_description display.launch.py wheelbase:=1.0 track:=0.8 wheel_radius:=0.15 show_wheels:=true
+Геометрия колёс изменится; не запускай два robot_state_publisher одновременно.
+
+НАМЕРЕННЫЙ ДЕФЕКТ (если нужно повторить; основную рабочую ветку не переключаем):
+Останови A. Создай отдельную копию:
+git worktree add --detach /tmp/pr06-demo-fault codex/pr06-lidar-parent-fault
+xacro /tmp/pr06-demo-fault/src/course_description/urdf/vehicle.urdf.xacro > /tmp/vehicle-broken.urdf
+check_urdf /tmp/vehicle-broken.urdf
+PR06_MODEL=/tmp/pr06-demo-fault/src/course_description/urdf/vehicle.urdf.xacro python3 -m pytest src/course_description/test -k test_lidar_parent -v
+check_urdf принимает дерево, но тест родителя падает: lidar привязан к camera.
+python3 - <<'PYTHON'
+import yaml
+with open('/tmp/vehicle-broken.yaml', 'w') as f:
+    yaml.safe_dump({'/**': {'ros__parameters': {
+        'robot_description': open('/tmp/vehicle-broken.urdf').read()}}}, f)
+PYTHON
+ros2 run robot_state_publisher robot_state_publisher --ros-args --params-file /tmp/vehicle-broken.yaml
+В B: ros2 run tf2_ros tf2_echo base_link lidar_link
+Неверная translation [0.560, 0.000, 0.760] — offset сложился дважды.
+Останови дефектную ноду, снова запусти исправный launch из A и повтори тот же тест:
+python3 -m pytest src/course_description/test -k test_lidar_parent -v
+Теперь тест проходит, translation снова [0.280, 0.000, 0.380].
+
+Результаты и владельцы преобразований: frames.md; проверки: model-check.txt;
+профили и реальные чтения: tf-qos.txt. Снимки и view_frames PDF не добавлены в Git.
+Предупреждение KDL об инерции корневого звена не мешает отображению и не означает
+ошибку check_urdf: физическая симуляция Gazebo в этой работе не запускается.
+Завершение: Ctrl+C в терминале запуска. Код 2 у CLI-публикации JointState при
+Ctrl+C допустим; robot_state_publisher и RViz завершаются нормально.
