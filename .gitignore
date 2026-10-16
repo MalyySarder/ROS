@@ -5,3 +5,16 @@ build/
 install/
 log/
 .course-kit/*.tar.gz
+
+# Raw experiment logs stay local; required submission files remain tracked.
+/evidence/pr01-reproduced/
+/evidence/pr02/*
+!/evidence/pr02/build-empty.txt
+!/evidence/pr02/build.txt
+!/evidence/pr02/commands.md
+!/evidence/pr02/report.json
+!/evidence/pr02/types.md
+/evidence/pr03/*
+!/evidence/pr03/demo.md
+!/evidence/pr03/report.json
+!/evidence/pr03/tests.txt

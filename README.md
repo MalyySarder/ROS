@@ -2,7 +2,7 @@
 
 Исходная ПР01 выполнена в ROS 2 Jazzy / WSL2; её evidence сохранено без изменений.
 Повторение на этом ПК: Ubuntu 26.04.1, ROS 2 Lyrical, native, домены 16/17.
-Результаты повторения: `evidence/pr01-reproduced/`. ПР02: `evidence/pr02/`. ПР03: `evidence/pr03/`.
+Журналы повторения ПР01 оставлены локально; [архив в истории GitHub](https://github.com/MalyySarder/ROS/tree/6adeb52f4e6a19cf8e18f60675eb2355b09253e6/evidence/pr01-reproduced). ПР02: `evidence/pr02/`. ПР03: `evidence/pr03/`.
 
 ## Подготовка каждого терминала
 
@@ -168,3 +168,12 @@ ros2 topic echo /turtle1/pose --once
 условные зависимости объявлены в package.xml.
 
 Условие ПР03: https://ros.lms.ci.nsu.ru/practices/pr03.
+
+
+## Состав evidence
+
+В Git оставлены обязательные отчёты и логи сдачи. Подробные журналы отдельных
+команд и вспомогательные скрипты оставлены локально и исключены из отслеживания.
+Упомянутые в отчётах дополнительные файлы можно посмотреть в
+[архивном коммите](https://github.com/MalyySarder/ROS/tree/6adeb52f4e6a19cf8e18f60675eb2355b09253e6/evidence).
+Исходники и результаты опытов не менялись при сокращении числа файлов.
