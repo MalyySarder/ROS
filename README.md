@@ -188,3 +188,5 @@ ros2 topic echo /turtle1/pose --once
 Текущий course kit: v1-w06. Намеренные дефекты хранятся в отдельных ветках
 `codex/pr04-zero-hz-fault` и (после ПР06) `codex/pr06-lidar-parent-fault`;
 CI push проверяет master, а не учебные ветки с намеренными ошибками.
+
+ПР05: `ros2 launch course_bringup patrol.launch.py namespace:=robot_a subscriber_reliability:=best_effort record:=true bag_dir:=evidence/pr05/bag`. Демонстрация и краткий отчёт: `evidence/pr05/run.txt`. MCAP остаётся локально.

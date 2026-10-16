@@ -39,7 +39,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'patrol = patrol.patrol:main'
+            'patrol = patrol.patrol:main',
+            'pose_relay = patrol.pose_relay:relay_main',
+            'pose_monitor = patrol.pose_relay:monitor_main'
         ],
     },
 )
