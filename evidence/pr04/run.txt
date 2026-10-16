@@ -1,0 +1,46 @@
+ПР04 — Параметры движения. Краткий отчёт и демонстрация
+
+Что используем: ROS 2 Lyrical, rclpy, turtlesim, параметры ROS и таймер.
+Сделано: linear_speed=0.5 (0..1), turn_rate=0.3 (-1..1), publish_hz=10.0 (1..30).
+Чистая проверка отклоняет NaN/Inf и выход за границы до изменения состояния.
+При принятой частоте старый таймер уничтожается, остаётся ровно один новый.
+Тесты: 27 passed. Живой поток меняется 10→5 Гц, ноль отклоняется и 5 Гц сохраняются.
+Намеренная версия без проверки частоты падает с ZeroDivisionError; она в ветке
+codex/pr04-zero-hz-fault. В master дефект исправлен. Полный вывод: parameters.md.
+
+В КАЖДОМ терминале:
+cd ~/Documents/ChatGPT/ДЗ/ROS
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+export ROS_DOMAIN_ID=16
+
+Если нужна сборка (в свежем терминале до source install):
+colcon build --symlink-install --packages-select patrol turtle_bringup
+
+A:
+ros2 launch turtle_bringup sim.launch.py
+B:
+ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel
+C:
+ros2 param list /patrol
+ros2 param get /patrol publish_hz
+ros2 topic hz /turtle1/cmd_vel
+Ctrl+C останавливает только измерение.
+ros2 param set /patrol publish_hz 5.0
+ros2 topic hz /turtle1/cmd_vel
+Ctrl+C. Ожидается около 5 Гц.
+ros2 param set /patrol publish_hz 0.0
+Ожидается отказ.
+ros2 param get /patrol publish_hz
+Значение осталось 5.0. Повтори hz: поток не прекратился.
+ros2 param set /patrol linear_speed 0.7
+ros2 param set /patrol turn_rate -0.4
+ros2 topic echo /turtle1/cmd_vel --once
+ros2 service call /clear std_srvs/srv/Empty '{}'
+ros2 action list -t
+
+/clear — запрос с одним ответом. Action поворота — цель с ходом выполнения,
+результатом и возможностью отмены. Своих action-серверов здесь нет.
+Завершение: Ctrl+C в B, дождаться остановки черепахи, затем Ctrl+C в A.
+Проверка: python3 -m pytest src/patrol/test -q
+Историческая сдача ПР04 проверяется на её коммите; последующие лабы расширяют код.
