@@ -1,0 +1,135 @@
+ПР07 — Gazebo и мост ros_gz
+
+Суть
+Запущен мир mcity_minimal с машиной course_ackermann. ROS и Gazebo используют
+разные транспорты; ros_gz_bridge передаёт поддерживаемые сообщения между ними.
+Наш адаптер переводит угол руля Ackermann в угловую скорость Twist:
+  /drive/safe -> ackermann_adapter -> /vehicle/gz_cmd_vel -> bridge -> Gazebo.
+Скорость ограничена 0..1.2 м/с, угол ±0.45 рад; omega = v*tan(delta)/0.8.
+При NaN/inf, старой команде (>0.25 с), пропадании команд — нулевой Twist.
+Команда из будущего также отклоняется. При v=0 машина не крутится на месте.
+/drive/raw никуда не подключён: supervisor появится в следующей работе.
+
+Обратный путь:
+Gazebo -> bridge -> /vehicle/odom_gz -> odom_adapter -> /vehicle/odom и /tf.
+Frames course_ackermann/odom и course_ackermann/base_link заменяются на
+odom и base_link. Stamp, pose, twist и обе covariance сохраняются.
+Статические связи сенсоров публикует robot_state_publisher из ПР06.
+
+Что использовано
+Ubuntu 26.04, ROS 2 Lyrical, Gazebo Jetty, Python/rclpy, ros_gz_bridge,
+ackermann_msgs, geometry_msgs, nav_msgs, tf2_ros, Xacro, robot_state_publisher,
+rosbag2/MCAP, pytest/colcon. Headless-рендерер: OGRE2/EGL.
+Course kit: v1-w07, SHA256:
+9b7fdd5424d3d97e47d51dbe23064934585e62135dc2902844dd679529bda929
+Камера изменена с 20 до 15 Гц. Namespace узлов robot_a; имена контрактных
+топиков /vehicle/..., /drive/safe и /clock остаются абсолютными.
+
+На этом компьютере ackermann_msgs собран из официального ros-drivers/ackermann_msgs,
+ветка ros2, commit 81a5f2d9ae1c1048216678b9dc3db6afc0cb815e, в
+/home/malyysarder/ros-pr07-deps. Сборка сделана отдельно из-за ограничения
+генератора rosidl на путь с кириллицей. Системный sudo не понадобился.
+На другом ПК зависимость можно установить штатно:
+  sudo apt update
+  sudo apt install ros-lyrical-ackermann-msgs ros-lyrical-ros-gz
+
+Подготовка — в КАЖДОМ новом терминале
+  cd /home/malyysarder/Documents/ChatGPT/ДЗ/ROS
+  source /opt/ros/lyrical/setup.bash
+  source install/setup.bash
+  export ROS_DOMAIN_ID=16
+
+Пересборка при изменениях (один раз, до запуска)
+  source /home/malyysarder/ros-pr07-deps/install/setup.bash
+  colcon build --symlink-install --packages-up-to course_simulation
+  source install/setup.bash
+  gz sdf -k src/course_simulation/models/course_ackermann/model.sdf
+  colcon test --packages-select course_simulation
+  colcon test-result --test-result-base build/course_simulation --verbose
+Путь к моделям launch задаёт сам, сохраняя существующий GZ_SIM_RESOURCE_PATH.
+Предупреждение SDF про расширение gz_frame_id допустимо; итог проверки — Valid.
+
+Демонстрация — терминал 1
+  ros2 launch course_simulation simulation.launch.py headless:=true
+Оставить работающим. Один launch запускает сервер Gazebo, один bridge,
+robot_state_publisher и два адаптера. Не запускать второй мост отдельно.
+Для графического окна Gazebo вместо headless:=true поставить headless:=false.
+
+Терминал 2 — сначала данные, затем управление
+  ros2 node list
+  ros2 topic echo /clock --once
+  ros2 topic echo /vehicle/imu --once --field header
+  ros2 topic hz /vehicle/scan
+После нескольких строк остановить hz через Ctrl+C.
+  ros2 topic info -v /vehicle/imu
+Показать BEST_EFFORT/KEEP_LAST; для /vehicle/odom — RELIABLE.
+
+Свежая команда, скорость 0.3 м/с, прямое движение:
+  ros2 topic pub -r 20 --use-sim-time /drive/safe ackermann_msgs/msg/AckermannDriveStamped '{header: auto, drive: {speed: 0.3, steering_angle: 0.0}}'
+header:auto заполняется текущим ROS-временем; --use-sim-time берёт его из /clock.
+Достаточно 3–5 секунд, затем Ctrl+C. Не держать команду до столкновения со стеной.
+Для короткого поворота заменить steering_angle: 0.0 на steering_angle: 0.2.
+После остановки источника watchdog обнулит команду. Явный стоп:
+  ros2 topic pub --once --use-sim-time /drive/safe ackermann_msgs/msg/AckermannDriveStamped '{header: auto, drive: {speed: 0.0, steering_angle: 0.0}}'
+
+Терминал 3 — пока терминал 2 публикует движение
+  ros2 topic echo /vehicle/gz_cmd_vel --once
+  gz topic -e -t /model/course_ackermann/cmd_vel -n 1
+  ros2 topic echo /vehicle/odom --once
+  gz topic -e -t /world/mcity_minimal/dynamic_pose/info -n 1
+Повторить две последние команды: изменяются и одометрия, и физическая поза
+course_ackermann. В динамических позах видны ориентации колёс и рулевых кулаков.
+  ros2 run tf2_ros tf2_echo odom base_link --ros-args -p use_sim_time:=true
+Остановить через Ctrl+C. TF совпадает с pose одометрии.
+  ros2 run tf2_ros tf2_echo base_link lidar_link --ros-args -p use_sim_time:=true
+Ожидается translation [0.28, 0, 0.38]. Аналогично camera_link и imu_link.
+
+Преднамеренная неисправность
+1. Ctrl+C в терминале 1, дождаться остановки ВСЕХ его процессов.
+2. Запустить тот же launch с ошибочной копией YAML:
+  ros2 launch course_simulation simulation.launch.py bridge_config:=$PWD/src/course_simulation/config/bridge_fault.yaml
+3. В другом терминале:
+  ros2 topic info -v /vehicle/imu
+  timeout 4s ros2 topic echo /vehicle/imu --once
+  gz topic -i -t /vehicle/imu
+  gz topic -e -t /vehicle/imu -n 1
+ROS-издатель есть, но echo завершается по таймауту (код 124).
+Gazebo выдаёт IMU на /vehicle/imu, а faulty YAML слушает /vehicle/imu_typo.
+4. Остановить ошибочный launch, запустить обычный из раздела «терминал 1».
+  ros2 topic echo /vehicle/imu --once --field header
+Данные снова приходят. Второй bridge параллельно не создаётся.
+
+Запись для ПР08
+fixtures/pr07-sensors — сохранённый локальный вход; НЕ перезаписывать его.
+Для собственной демонстрационной записи использовать новое имя, например:
+  ros2 bag record --storage mcap --use-sim-time -o fixtures/pr07-sensors-demo --topics /vehicle/camera/image_raw /vehicle/scan /vehicle/imu /vehicle/odom /tf /tf_static /clock
+Дождаться увеличения /clock минимум на 32–35 секунд и остановить recorder Ctrl+C.
+  ros2 bag info fixtures/pr07-sensors-demo
+Нужны duration >=30 секунд и ненулевые счётчики всех семи топиков, включая
+/tf_static. Из-за RTF время ожидания на компьютере может быть больше.
+Камера, лидар и IMU — best effort; часть кадров может пропускаться под нагрузкой.
+
+Что сдавать и где смотреть доказательства
+report.json — отчёт курса и SHA коммита реализации;
+sensors.json — frames, частоты по времени компьютера/симуляции и RTF;
+headless.txt — запуск, команды и реальные результаты опытов;
+odom-adapter.md — контракт одометрии, владельцы TF, проверка сохранения данных;
+bag-info.txt — длительность и состав MCAP; workstation.txt — среда и рендерер.
+Большая запись MCAP оставлена локально, в Git не загружается.
+Проверка курса выполняется на чистом checkout коммита сдачи:
+  python3 .course-kit/v1/tools/check_practice.py PR07 --submission .
+В рабочей папке посторонние незакоммиченные файлы могут мешать проверке чистоты.
+
+Результат выполненного опыта
+26 модульных тестов адаптеров прошли. Реальное прямое перемещение корпуса: 1.086 м.
+Проверены поворот колёс, отсутствие обхода через /drive/raw, watchdog, stale и NaN.
+RTF в окне измерения: 0.9913. Частоты по времени компьютера:
+  /vehicle/camera/image_raw: 13.262 Гц (задано 15).
+  /vehicle/scan: 9.911 Гц (задано 10).
+  /vehicle/imu: 99.12 Гц (задано 100).
+  /vehicle/odom_gz: 49.568 Гц (задано 50).
+  /vehicle/odom: 49.561 Гц (задано 50).
+Запись: 35.16 с симуляции, все семь топиков, 309.9 MiB.
+При записи машина прошла от x=1.948,y=0.048 до x=5.878,y=0.574.
+Камера может выдавать меньше заданных 15 Гц из-за рендеринга/доставки под нагрузкой;
+остальные сенсоры близки к своим частотам при RTF около 1.

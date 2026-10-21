@@ -1,0 +1,63 @@
+
+== Система ==
+PRETTY_NAME="Ubuntu 26.04.1 LTS"
+VERSION_CODENAME=resolute
+архитектура=x86_64
+ядро=7.0.0-38-generic
+назначенная оболочка=/bin/bash
+текущая оболочка=bash
+
+== Инструменты ==
+GNU bash, version 5.3.9(1)-release (x86_64-pc-linux-gnu)
+Copyright (C) 2025 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+git version 2.53.0
+[не найдено] fish
+[не найдено] uv
+[не найдено] code
+[не найдено] docker
+
+== ROS 2 ==
+ROS_DISTRO=lyrical
+ROS_DOMAIN_ID=<не задано>
+ros2=/opt/ros/lyrical/bin/ros2
+/opt/ros/lyrical
+
+== Графические адаптеры и драйверы ==
+0000:00:02.0 VGA compatible controller [0300]: Intel Corporation TigerLake-H GT1 [UHD Graphics] [8086:9a68] (rev 01)
+	Subsystem: Acer Incorporated [ALI] Device [1025:1539]
+	Kernel driver in use: i915
+	Kernel modules: i915, xe
+--
+0000:01:00.0 VGA compatible controller [0300]: NVIDIA Corporation GA107M [GeForce RTX 3050 Ti Mobile] [10de:25a0] (rev a1)
+	Subsystem: Acer Incorporated [ALI] Device [1025:153a]
+	Kernel driver in use: nvidia
+	Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
+--
+10000:e1:00.0 Non-Volatile memory controller [0108]: Sandisk Corp SanDisk Ultra 3D / WD PC SN530, IX SN530, Blue SN550 NVMe SSD (DRAM-less) [15b7:5009] (rev 01)
+	Subsystem: Sandisk Corp WD Blue SN550 NVMe SSD [15b7:5009]
+	Kernel driver in use: nvme
+	Kernel modules: nvme
+
+== OpenGL renderer ==
+[не найдено] glxinfo; установите mesa-utils
+
+== Vulkan ==
+[не найдено] vulkaninfo; установите vulkan-tools
+
+== NVIDIA ==
+NVIDIA GeForce RTX 3050 Ti Laptop GPU, 595.91.07
+
+Отчёт завершён. Перед публикацией просмотрите его вручную.
+
+== PR07 runtime verification ==
+$ gz sim --versions
+10.5.0
+$ git -C /home/malyysarder/ros-pr07-deps/src/ackermann_msgs rev-parse HEAD
+81a5f2d9ae1c1048216678b9dc3db6afc0cb815e
+$ ros2 pkg prefix ackermann_msgs
+/home/malyysarder/ros-pr07-deps/install/ackermann_msgs
+01:13:28: GL_VENDOR = NVIDIA Corporation
+01:13:28: GL_RENDERER = NVIDIA GeForce RTX 3050 Ti Laptop GPU/PCIe/SSE2
+OGRE2/EGL: actual camera and GPU lidar messages received in headless mode.
+GPU enumeration warnings did not prevent the NVIDIA rendering context from working.

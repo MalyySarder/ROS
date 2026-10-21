@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR07",
+  "commit": "4f185e86226b153aea5d294f7d0f12df019ab5d2",
+  "course_kit": {
+    "version": "v1-w07",
+    "archive_sha256": "9b7fdd5424d3d97e47d51dbe23064934585e62135dc2902844dd679529bda929"
+  },
+  "commands": [
+    "colcon build --symlink-install --packages-up-to course_simulation",
+    "gz sdf -k src/course_simulation/models/course_ackermann/model.sdf",
+    "ros2 launch course_simulation simulation.launch.py headless:=true",
+    "ros2 topic info -v /vehicle/gz_cmd_vel",
+    "gz topic -i -t /model/course_ackermann/cmd_vel",
+    "ros2 topic hz /vehicle/scan",
+    "ros2 topic echo /clock --once",
+    "ros2 topic pub -r 20 --use-sim-time /drive/safe ackermann_msgs/msg/AckermannDriveStamped \"{header: auto, drive: {speed: 0.3, steering_angle: 0.0}}\"",
+    "gz topic -e -t /world/mcity_minimal/dynamic_pose/info -n 1",
+    "ros2 run tf2_ros tf2_echo odom base_link --ros-args -p use_sim_time:=true",
+    "ros2 launch course_simulation simulation.launch.py bridge_config:=$PWD/src/course_simulation/config/bridge_fault.yaml",
+    "timeout 4s ros2 topic echo /vehicle/imu --once",
+    "ros2 bag record --storage mcap --use-sim-time -o fixtures/pr07-sensors --topics /vehicle/camera/image_raw /vehicle/scan /vehicle/imu /vehicle/odom /tf /tf_static /clock",
+    "ros2 bag info fixtures/pr07-sensors",
+    "colcon test --packages-select patrol course_description course_simulation --event-handlers console_direct+",
+    "colcon test-result --verbose"
+  ],
+  "tests": [
+    {
+      "name": "26 adapter unit tests passed (kinematics, clamp, timestamps, non-finite data, frame validation, stamp/pose/twist/covariance preservation)",
+      "status": "passed"
+    },
+    {
+      "name": "Existing patrol and description tests plus simulation: 67 test entries, no errors/failures, one existing skip",
+      "status": "passed"
+    },
+    {
+      "name": "Headless OGRE2/EGL produces camera, lidar, IMU, odometry and clock",
+      "status": "passed"
+    },
+    {
+      "name": "ROS and Gazebo commands match; physical body moved 1.086 m; wheels roll about transverse Y and front knuckles steer",
+      "status": "passed"
+    },
+    {
+      "name": "Raw command bypass absent; watchdog, stale and NaN commands stop output",
+      "status": "passed"
+    },
+    {
+      "name": "30 matching stamps preserve raw odometry data and TF; DDS GID confirms unique odom->base_link owner",
+      "status": "passed"
+    },
+    {
+      "name": "Wrong IMU source gives publisher without messages; corrected single bridge delivers IMU",
+      "status": "passed"
+    },
+    {
+      "name": "MCAP inspected: 35.16 s simulation, all seven topics nonempty, normalized frames and fixed sensor TF present",
+      "status": "passed"
+    },
+    {
+      "name": "Xacro/check_urdf and RViz fixed sensor frames checked",
+      "status": "passed"
+    }
+  ],
+  "defect": {
+    "reproducer": "Launch with config/bridge_fault.yaml: IMU Gazebo source /vehicle/imu_typo instead of /vehicle/imu.",
+    "root_cause": "The bridge advertises a ROS publisher but subscribes to a nonexistent Gazebo topic; publisher count alone cannot prove data flow.",
+    "proof_after": "Bounded ROS echo times out with faulty YAML while gz topic reads live IMU; after stopping that launch and starting the corrected one, ROS echo succeeds, with exactly one bridge."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true,
+    "headless_verified": true,
+    "recording_verified": true,
+    "odometry_tf_owned": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2.5
+  },
+  "ai_used": true,
+  "recording": {
+    "duration_sim_seconds": 35.16,
+    "message_counts": {
+      "/clock": 35159,
+      "/vehicle/odom": 1757,
+      "/tf": 1756,
+      "/vehicle/imu": 3512,
+      "/tf_static": 1,
+      "/vehicle/scan": 351,
+      "/vehicle/camera/image_raw": 461
+    },
+    "fixed_edges": [
+      [
+        "base_link",
+        "camera_link"
+      ],
+      [
+        "base_link",
+        "imu_link"
+      ],
+      [
+        "base_link",
+        "lidar_link"
+      ]
+    ],
+    "dynamic_tf_messages": 1756,
+    "odom_first_xy": [
+      1.9484640023453816,
+      0.04796447480149567
+    ],
+    "odom_last_xy": [
+      5.8781208571931725,
+      0.5737817457217884
+    ],
+    "sha256": {
+      "0_pr07-sensors_2026_10_21-01_10_56.mcap": "88af31819e30fa767e6ed3b57583de91443326d06a4bfd5b3fe2c093d08e2230"
+    }
+  }
+}
