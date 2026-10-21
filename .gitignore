@@ -21,3 +21,6 @@ log/
 
 /evidence/pr05/bag/
 *.mcap
+
+# Local immutable sensor recording for PR08
+/fixtures/pr07-sensors*/
